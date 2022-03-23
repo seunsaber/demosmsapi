@@ -1,4 +1,4 @@
-package interceptors;
+package com.seun.demosms.interceptors;
 
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
