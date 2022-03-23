@@ -1,5 +1,6 @@
 package com.seun.demosms.interceptors;
 
+import com.seun.demosms.exceptions.AuthenticationException;
 import com.seun.demosms.services.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -33,9 +34,11 @@ public class RequestInterceptor implements HandlerInterceptor {
         String [] credentials = clearCredentials.split(":", 2);
         String username = credentials[0];
         String password = credentials[1];
-        //TODO Authenticate user
 
-         boolean iaAuthenticated = accountService.authenticateUser(username, password);
+        boolean iaAuthenticated = accountService.authenticateUser(username, password);
+
+        if(!iaAuthenticated)
+            throw new AuthenticationException("Authentication failed");
 
         return true;
     }
