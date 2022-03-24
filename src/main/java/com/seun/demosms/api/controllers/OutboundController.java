@@ -19,6 +19,6 @@ public class OutboundController {
 
     @PostMapping("/sms")
     public ResponseEntity<ResponseDTO> sms(@RequestBody SmsRequestDTO request){
-        return phoneNumberService.logInboundSms(request);
+        return phoneNumberService.logOutboundSms(request);
     }
 }

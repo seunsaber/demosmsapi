@@ -7,6 +7,7 @@ import com.seun.demosms.exceptions.ResourceNotFoundException;
 import com.seun.demosms.models.PhoneNumber;
 import com.seun.demosms.repositories.PhoneNumberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,19 @@ import java.util.Optional;
 public class PhoneNumberService {
 
     @Autowired
+    private CacheService cacheService;
+
+    @Autowired
     private PhoneNumberRepository repository;
+
+    @Value("${stop.requests.cacheName}")
+    private String stopRequestsCacheName;
+
+    @Value("${request.count.cacheName}")
+    private String requestCountCacheName;
+
+    @Value("${request.dailyTracker.cacheName}")
+    private String requestDailyTrackerCacheName;
 
     public ResponseEntity<ResponseDTO> logInboundSms(SmsRequestDTO request){
         validate(request);
@@ -26,11 +39,9 @@ public class PhoneNumberService {
 
         optionalPhoneNumber.orElseThrow(() -> new ResourceNotFoundException("to parameter not found"));
 
-        if(request.getText().equals("STOP") || request.getText().equals("STOP\\n")
-                || request.getText().equals("STOP\\r") || request.getText().equals("STOP\\r\\n")){
-            //TODO: store from and to pair in cache, expire after 4 hours.
-        }else{
-            //store normally
+        if(request.getText().equals("STOP") || request.getText().equals("STOP\n")
+                || request.getText().equals("STOP\r") || request.getText().equals("STOP\r\n")){
+            cacheService.addToCache(stopRequestsCacheName, request.getFrom(), request.getTo()); //4 hours to leave
         }
 
         return new ResponseEntity<>(new ResponseDTO("inbound sms ok",""), HttpStatus.OK);
@@ -44,20 +55,29 @@ public class PhoneNumberService {
 
         optionalPhoneNumber.orElseThrow(() -> new ResourceNotFoundException("from parameter not found"));
 
-        //if (to and from match any pair in cache){
-        //  return error
-        // }
-
-        //do not allow more than 50 API requests from same from in 24 hours from first use, return error
-        //reset after 24 hours
+        String to = cacheService.getItem(stopRequestsCacheName, request.getFrom());
+        if(to.equals(request.getTo()))
+            throw new BadRequestException(String.format("sms from %s to %s blocked by STOP request", request.getFrom(), request.getTo()));
 
 
-        if(request.getText().equals("STOP") || request.getText().equals("STOP\\n")
-                || request.getText().equals("STOP\\r") || request.getText().equals("STOP\\r\\n")){
-            //TODO: store from and to pair in cache, expire after 4 hours.
+        if(cacheService.hasKay(requestDailyTrackerCacheName, request.getFrom())){
+            //if key exist in 24hour cache, fetch value from counter cache
+            int count = Integer.valueOf(cacheService.getItem(requestCountCacheName, request.getFrom()));
+
+            if(count > 50)
+                throw new BadRequestException("limit reached for from "+request.getFrom());
+
+            count = count + 1;
+            //increment count in counter cache
+            cacheService.addToCache(requestCountCacheName, request.getFrom(), String.valueOf(count));
+        }else{
+            //create new entry in 24hour cache and counter cache
+            cacheService.addToCache(requestDailyTrackerCacheName, request.getFrom(), "");//24 hours to leave
+            cacheService.addToCache(requestCountCacheName, request.getFrom(), String.valueOf(0));
         }
 
-        return new ResponseEntity<>(new ResponseDTO("inbound sms ok",""), HttpStatus.OK);
+
+        return new ResponseEntity<>(new ResponseDTO("outbound sms ok",""), HttpStatus.OK);
 
     }
 
