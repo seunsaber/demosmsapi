@@ -2,6 +2,7 @@ package com.seun.demosms.api;
 
 import com.seun.demosms.dtos.ResponseDTO;
 import com.seun.demosms.exceptions.AuthenticationException;
+import com.seun.demosms.exceptions.BadRequestException;
 import com.seun.demosms.exceptions.ResourceNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -14,6 +15,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 public class ApiErrorHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Object> handleBadRequestException(BadRequestException e){
+        ResponseDTO response = new ResponseDTO("", e.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Object> handleAuthenticationException(AuthenticationException e){
