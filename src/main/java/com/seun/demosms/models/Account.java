@@ -1,5 +1,6 @@
 package com.seun.demosms.models;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.persistence.Entity;
