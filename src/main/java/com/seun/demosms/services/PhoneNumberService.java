@@ -19,7 +19,7 @@ public class PhoneNumberService {
     @Autowired
     private PhoneNumberRepository repository;
 
-    public ResponseEntity<ResponseDTO> logSms(SmsRequestDTO request){
+    public ResponseEntity<ResponseDTO> logInboundSms(SmsRequestDTO request){
         validate(request);
 
         Optional<PhoneNumber> optionalPhoneNumber = repository.findByNumber(request.getTo());
@@ -29,11 +29,38 @@ public class PhoneNumberService {
         if(request.getText().equals("STOP") || request.getText().equals("STOP\\n")
                 || request.getText().equals("STOP\\r") || request.getText().equals("STOP\\r\\n")){
             //TODO: store from and to pair in cache, expire after 4 hours.
+        }else{
+            //store normally
         }
 
         return new ResponseEntity<>(new ResponseDTO("inbound sms ok",""), HttpStatus.OK);
 
     }
+
+    public ResponseEntity<ResponseDTO> logOutboundSms(SmsRequestDTO request){
+        validate(request);
+
+        Optional<PhoneNumber> optionalPhoneNumber = repository.findByNumber(request.getFrom());
+
+        optionalPhoneNumber.orElseThrow(() -> new ResourceNotFoundException("from parameter not found"));
+
+        //if (to and from match any pair in cache){
+        //  return error
+        // }
+
+        //do not allow more than 50 API requests from same from in 24 hours from first use, return error
+        //reset after 24 hours
+
+
+        if(request.getText().equals("STOP") || request.getText().equals("STOP\\n")
+                || request.getText().equals("STOP\\r") || request.getText().equals("STOP\\r\\n")){
+            //TODO: store from and to pair in cache, expire after 4 hours.
+        }
+
+        return new ResponseEntity<>(new ResponseDTO("inbound sms ok",""), HttpStatus.OK);
+
+    }
+
     private void validate(SmsRequestDTO request){
         if(request.getFrom() == null || request.getFrom().isBlank())
             throw new BadRequestException("'from' is required");

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/inbound")
-public class InboundController {
+@RequestMapping("/outbound")
+public class OutboundController {
 
     @Autowired
     private PhoneNumberService phoneNumberService;
