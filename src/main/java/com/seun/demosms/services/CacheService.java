@@ -23,7 +23,7 @@ public class CacheService {
         return (String) hashOperations.get(cacheName, key);
     }
 
-    public boolean hasKay(String cacheName ,String key){
+    public boolean hasKey(String cacheName , String key){
         return hashOperations.hasKey(cacheName, key);
     }
 }

@@ -56,11 +56,11 @@ public class PhoneNumberService {
         optionalPhoneNumber.orElseThrow(() -> new ResourceNotFoundException("from parameter not found"));
 
         String to = cacheService.getItem(stopRequestsCacheName, request.getFrom());
-        if(to.equals(request.getTo()))
+        if(to != null && to.equals(request.getTo()))
             throw new BadRequestException(String.format("sms from %s to %s blocked by STOP request", request.getFrom(), request.getTo()));
 
 
-        if(cacheService.hasKay(requestDailyTrackerCacheName, request.getFrom())){
+        if(cacheService.hasKey(requestDailyTrackerCacheName, request.getFrom())){
             //if key exist in 24hour cache, fetch value from counter cache
             int count = Integer.valueOf(cacheService.getItem(requestCountCacheName, request.getFrom()));
 
