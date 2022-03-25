@@ -40,4 +40,9 @@ The endpoints expect POST request with the following sample structure
 }
 ```
 
-   
+ The application is has been deployed to AWS cloud, its public URLs are 
+ 
+ ```sh
+ http://ec2-54-227-11-95.compute-1.amazonaws.com:8081/inbound/sms
+ http://ec2-54-227-11-95.compute-1.amazonaws.com:8081/outbound/sms
+ ``` 
